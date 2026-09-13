@@ -1,0 +1,640 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Vlajkolet</title>
+<meta name="theme-color" content="#0E2352">
+<meta name="description" content="Hra pro děti: poznávej vlajky, státy a hlavní města.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vlajkolet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌍</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --deep:#0E2352;
+  --sky:#2F6FE4;
+  --sky-soft:#4E8BF5;
+  --sun:#FFC93C;
+  --coral:#FF5E5B;
+  --mint:#2ED3A0;
+  --paper:#FFF8EC;
+  --ink:#111A33;
+  --shadow:0 5px 0 rgba(9,20,48,.35);
+  --font:"Baloo 2","Fredoka","Nunito","Segoe UI Rounded","Trebuchet MS",system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;font-family:var(--font);color:var(--paper);
+  background:
+    radial-gradient(120% 60% at 85% -5%, rgba(255,201,60,.55) 0 22%, rgba(255,201,60,0) 60%),
+    linear-gradient(178deg,#173A86 0%, var(--deep) 55%, #08183C 100%);
+  background-attachment:fixed;
+  overflow-x:hidden;
+  user-select:none;-webkit-user-select:none;
+}
+button{font-family:inherit;cursor:pointer}
+.wrap{max-width:520px;margin:0 auto;padding:18px 16px calc(24px + env(safe-area-inset-bottom))}
+.screen{display:none;animation:fadeIn .25s ease both}
+.screen.on{display:block}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ---------- home ---------- */
+.brand{position:relative;text-align:center;padding:14px 0 6px}
+.globe{font-size:74px;line-height:1;display:inline-block;filter:drop-shadow(0 8px 0 rgba(0,0,0,.25));animation:spinGlobe 9s linear infinite}
+@keyframes spinGlobe{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+h1{
+  margin:2px 0 2px;font-size:clamp(38px,12vw,54px);font-weight:800;letter-spacing:-1px;
+  color:var(--sun);text-shadow:0 4px 0 #B5731A, 0 8px 14px rgba(0,0,0,.35);
+}
+.tagline{margin:0 0 18px;font-size:16px;font-weight:500;color:#BFD3FF}
+.label{font-size:15px;font-weight:700;color:#9FBAF0;margin:20px 2px 8px}
+.modes{display:grid;gap:10px}
+.mode{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:16px;
+  padding:12px 14px;box-shadow:var(--shadow);transition:transform .12s ease, box-shadow .12s ease;
+}
+.mode .ic{font-size:28px;line-height:1}
+.mode b{display:block;font-size:18px;font-weight:800}
+.mode span{display:block;font-size:13px;font-weight:500;color:#5B6885;line-height:1.25}
+.mode[aria-pressed="true"]{background:var(--sun);transform:translateY(3px);box-shadow:0 2px 0 rgba(9,20,48,.35), inset 0 0 0 3px rgba(255,255,255,.5)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  background:rgba(255,255,255,.1);color:var(--paper);border:2px solid rgba(255,255,255,.35);
+  border-radius:999px;padding:9px 14px;font-size:15px;font-weight:700;
+}
+.chip[aria-pressed="true"]{background:var(--mint);border-color:var(--ink);color:var(--ink)}
+.play{
+  margin-top:24px;width:100%;background:var(--coral);color:#fff;border:3px solid var(--ink);
+  border-radius:18px;padding:16px;font-size:24px;font-weight:800;box-shadow:0 6px 0 rgba(9,20,48,.45);
+}
+.play:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(9,20,48,.45)}
+.best{text-align:center;margin-top:12px;font-size:14px;font-weight:600;color:#9FBAF0;min-height:20px}
+.sound{
+  position:absolute;top:10px;right:0;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.3);
+  color:var(--paper);border-radius:12px;width:44px;height:44px;font-size:20px;
+}
+
+.playerrow{display:flex;gap:8px}
+.nameIn{
+  flex:1;min-width:0;background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:14px;
+  padding:12px 14px;font-size:18px;font-weight:700;font-family:inherit;box-shadow:var(--shadow);
+}
+.nameIn::placeholder{color:#9AA6C0;font-weight:600}
+.addP{background:var(--mint);color:var(--ink);border:3px solid var(--ink);border-radius:14px;padding:0 18px;font-size:17px;font-weight:800;box-shadow:var(--shadow)}
+.board{margin-top:14px;border-top:2px dashed #C8D2E6;padding-top:10px;text-align:left}
+.board h3{margin:0 0 6px;font-size:14px;font-weight:700;color:#5B6885}
+.board div{display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:#33405E;padding:2px 0}
+.board div.me{color:var(--sky)}
+.who{font-size:17px;font-weight:700;color:#5B6885}
+
+/* ---------- game ---------- */
+.hud{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.hud .quit{background:none;border:none;color:#9FBAF0;font-size:22px;padding:4px 6px}
+.pips{display:flex;gap:4px;flex:1}
+.pip{height:8px;flex:1;border-radius:4px;background:rgba(255,255,255,.18)}
+.pip.ok{background:var(--mint)}.pip.bad{background:var(--coral)}.pip.now{background:var(--sun)}
+.score{font-size:20px;font-weight:800;color:var(--sun);min-width:62px;text-align:right}
+.runway{position:relative;height:14px;border-radius:8px;background:rgba(255,255,255,.15);overflow:visible;margin-bottom:16px}
+.fuel{position:absolute;inset:0;width:100%;border-radius:8px;background:linear-gradient(90deg,var(--coral),var(--sun));transform-origin:left}
+.plane{position:absolute;top:-13px;font-size:22px;transform:translateX(-50%)}
+
+.ask{
+  position:relative;background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:20px;
+  padding:12px;box-shadow:var(--shadow);text-align:center;margin-bottom:14px;
+}
+.ask .kicker{font-size:13px;font-weight:700;color:#5B6885;margin-bottom:4px}
+.ask .big{font-size:clamp(26px,8vw,36px);font-weight:800;line-height:1.1;margin:0}
+.ask .flagbox{width:min(330px,92%);margin:8px auto 2px}
+.say{margin-top:10px;background:var(--sky);color:#fff;border:3px solid var(--ink);border-radius:999px;padding:7px 16px;font-size:15px;font-weight:700}
+.streak{position:absolute;top:-14px;left:-8px;background:var(--mint);color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:2px 10px;font-size:14px;font-weight:800;transform:rotate(-7deg)}
+
+.opts{display:grid;gap:12px}
+.opts.grid2{grid-template-columns:1fr 1fr}
+.opt{
+  background:var(--paper);border:3px solid var(--ink);border-radius:16px;padding:4px;
+  box-shadow:var(--shadow);color:var(--ink);font-size:17px;font-weight:700;line-height:1.2;
+  transition:transform .1s ease, box-shadow .1s ease, background .15s ease;
+}
+.opts:not(.grid2) .opt{padding:15px 14px;text-align:center}
+.opt:active{transform:translateY(4px) scale(.99);box-shadow:0 1px 0 rgba(9,20,48,.35)}
+.opt.right{background:var(--mint);animation:pop .35s ease}
+.opt.wrong{background:#FFB0AE;animation:shake .35s ease}
+.opt.dim{opacity:.45}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+
+.flag{position:relative;width:100%;aspect-ratio:3/2;border-radius:10px;overflow:hidden;border:2px solid var(--ink);background:#DCE4F2;display:flex;align-items:center;justify-content:center}
+.flag img{width:100%;height:100%;object-fit:cover;display:block}
+.flag.emoji{font-size:82px;background:#fff}
+.opts.grid2{gap:10px}
+
+.gain{
+  position:fixed;left:50%;top:38%;transform:translate(-50%,0);font-size:44px;font-weight:800;
+  color:var(--sun);text-shadow:0 3px 0 #8A5A12;pointer-events:none;animation:rise 1s ease forwards;z-index:9
+}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,20px) scale(.7)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-70px) scale(1.1)}}
+
+/* ---------- end ---------- */
+.result{background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:22px;padding:22px 18px;box-shadow:var(--shadow);text-align:center}
+.stamp{display:inline-block;border:4px double var(--coral);color:var(--coral);border-radius:14px;padding:6px 16px;font-size:20px;font-weight:800;transform:rotate(-6deg);margin-bottom:10px}
+.stars{font-size:42px;letter-spacing:4px;margin:4px 0}
+.total{font-size:58px;font-weight:800;line-height:1;color:var(--sky)}
+.totlab{font-size:15px;font-weight:700;color:#5B6885;margin-bottom:14px}
+.rows{text-align:left;font-size:15px;font-weight:600;color:#33405E;border-top:2px dashed #C8D2E6;padding-top:12px}
+.rows div{display:flex;justify-content:space-between;padding:3px 0}
+.missed{margin-top:12px;font-size:14px;font-weight:600;color:#5B6885;text-align:left}
+.missed b{color:var(--ink)}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:5}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important}}
+</style>
+
+<canvas id="confetti"></canvas>
+<div class="wrap">
+
+<!-- HOME -->
+<section class="screen on" id="s-home">
+  <div class="brand">
+    <button class="sound" id="sndBtn" aria-label="Zvuk">🔊</button>
+    <div class="globe">🌍</div>
+    <h1>Vlajkolet</h1>
+    <p class="tagline">Deset otázek kolem světa.</p>
+  </div>
+
+  <div class="label" id="whoLabel">Kdo hraje?</div>
+  <div class="playerrow">
+    <input id="nameIn" class="nameIn" maxlength="14" placeholder="Napiš svoje jméno" autocomplete="off" autocapitalize="words">
+    <button class="addP" id="addP">Hotovo</button>
+  </div>
+  <div class="chips" id="players" style="margin-top:8px"></div>
+
+  <div class="label">Co budeš hádat?</div>
+  <div class="modes" id="modes"></div>
+
+  <div class="label">Kam poletíš?</div>
+  <div class="chips" id="conts"></div>
+
+  <div class="label">Jak těžké to bude?</div>
+  <div class="chips" id="diffs"></div>
+
+  <button class="play" id="playBtn">Start ✈️</button>
+  <div class="best" id="best"></div>
+</section>
+
+<!-- GAME -->
+<section class="screen" id="s-game">
+  <div class="hud">
+    <button class="quit" id="quitBtn" aria-label="Zpět">✕</button>
+    <div class="pips" id="pips"></div>
+    <div class="score" id="score">0</div>
+  </div>
+  <div class="runway"><div class="fuel" id="fuel"></div><div class="plane" id="plane">✈️</div></div>
+  <div class="ask" id="ask"></div>
+  <div class="opts" id="opts"></div>
+</section>
+
+<!-- END -->
+<section class="screen" id="s-end">
+  <div class="result">
+    <div class="stamp" id="stamp">Přistáno</div>
+    <div class="who" id="who"></div>
+    <div class="stars" id="stars"></div>
+    <div class="total" id="total">0</div>
+    <div class="totlab">bodů</div>
+    <div class="rows" id="rows"></div>
+    <div class="missed" id="missed"></div>
+    <div class="board" id="board"></div>
+  </div>
+  <button class="play" id="againBtn">Letět znovu ✈️</button>
+  <button class="play" id="homeBtn" style="background:var(--sky);margin-top:10px">Změnit let</button>
+</section>
+
+</div>
+<script>
+/* ============ DATA ============ */
+// k = kontinent, f = jak známý stát (1 slavný, 2 střední, 3 malý/těžký)
+const D=[
+["cz","Česko","Praha","eu",1],["sk","Slovensko","Bratislava","eu",1],["pl","Polsko","Varšava","eu",1],
+["de","Německo","Berlín","eu",1],["at","Rakousko","Vídeň","eu",1],["hu","Maďarsko","Budapešť","eu",1],
+["fr","Francie","Paříž","eu",1],["es","Španělsko","Madrid","eu",1],["pt","Portugalsko","Lisabon","eu",1],
+["it","Itálie","Řím","eu",1],["gb","Velká Británie","Londýn","eu",1],["ie","Irsko","Dublin","eu",1],
+["nl","Nizozemsko","Amsterdam","eu",1],["be","Belgie","Brusel","eu",1],["ch","Švýcarsko","Bern","eu",1],
+["dk","Dánsko","Kodaň","eu",1],["se","Švédsko","Stockholm","eu",1],["no","Norsko","Oslo","eu",1],
+["fi","Finsko","Helsinky","eu",1],["is","Island","Reykjavík","eu",2],["gr","Řecko","Atény","eu",1],
+["hr","Chorvatsko","Záhřeb","eu",1],["ua","Ukrajina","Kyjev","eu",1],["ru","Rusko","Moskva","eu",1],
+["tr","Turecko","Ankara","eu",1],["ro","Rumunsko","Bukurešť","eu",2],["bg","Bulharsko","Sofie","eu",2],
+["si","Slovinsko","Lublaň","eu",2],["rs","Srbsko","Bělehrad","eu",2],["ba","Bosna a Hercegovina","Sarajevo","eu",2],
+["me","Černá Hora","Podgorica","eu",2],["mk","Severní Makedonie","Skopje","eu",2],["al","Albánie","Tirana","eu",2],
+["ee","Estonsko","Tallinn","eu",2],["lv","Lotyšsko","Riga","eu",2],["lt","Litva","Vilnius","eu",2],
+["by","Bělorusko","Minsk","eu",2],["md","Moldavsko","Kišiněv","eu",2],["mt","Malta","Valletta","eu",2],
+["cy","Kypr","Nikósie","eu",2],["lu","Lucembursko","Lucemburk","eu",2],["mc","Monako","Monako","eu",3],
+["li","Lichtenštejnsko","Vaduz","eu",3],["sm","San Marino","San Marino","eu",3],["ad","Andorra","Andorra la Vella","eu",3],
+["va","Vatikán","Vatikán","eu",3],
+["cn","Čína","Peking","as",1],["jp","Japonsko","Tokio","as",1],["kr","Jižní Korea","Soul","as",1],
+["in","Indie","Nové Dillí","as",1],["th","Thajsko","Bangkok","as",1],["vn","Vietnam","Hanoj","as",2],
+["id","Indonésie","Jakarta","as",2],["ph","Filipíny","Manila","as",2],["my","Malajsie","Kuala Lumpur","as",2],
+["sg","Singapur","Singapur","as",2],["pk","Pákistán","Islámábád","as",2],["bd","Bangladéš","Dháka","as",2],
+["np","Nepál","Káthmándú","as",2],["lk","Srí Lanka","Kolombo","as",2],["kh","Kambodža","Phnompenh","as",2],
+["la","Laos","Vientiane","as",3],["mm","Myanmar","Neipyijto","as",3],["mn","Mongolsko","Ulánbátar","as",2],
+["kz","Kazachstán","Astana","as",2],["uz","Uzbekistán","Taškent","as",2],["af","Afghánistán","Kábul","as",2],
+["ir","Írán","Teherán","as",2],["iq","Irák","Bagdád","as",2],["sa","Saúdská Arábie","Rijád","as",2],
+["ae","Spojené arabské emiráty","Abú Zabí","as",2],["il","Izrael","Jeruzalém","as",2],["jo","Jordánsko","Ammán","as",2],
+["lb","Libanon","Bejrút","as",2],["sy","Sýrie","Damašek","as",2],["qa","Katar","Dauhá","as",2],
+["kw","Kuvajt","Kuvajt","as",3],["om","Omán","Maskat","as",3],["ge","Gruzie","Tbilisi","as",2],
+["am","Arménie","Jerevan","as",2],["az","Ázerbájdžán","Baku","as",2],["kp","Severní Korea","Pchjongjang","as",2],
+["bt","Bhútán","Thimbú","as",3],["bn","Brunej","Bandar Seri Begawan","as",3],["mv","Maledivy","Malé","as",3],
+["eg","Egypt","Káhira","af",1],["ma","Maroko","Rabat","af",1],["za","Jihoafrická republika","Pretoria","af",1],
+["ng","Nigérie","Abuja","af",2],["ke","Keňa","Nairobi","af",2],["et","Etiopie","Addis Abeba","af",2],
+["dz","Alžírsko","Alžír","af",2],["tn","Tunisko","Tunis","af",2],["ly","Libye","Tripolis","af",2],
+["gh","Ghana","Akkra","af",2],["sn","Senegal","Dakar","af",2],["tz","Tanzanie","Dodoma","af",2],
+["ug","Uganda","Kampala","af",2],["zw","Zimbabwe","Harare","af",2],["na","Namibie","Windhoek","af",2],
+["bw","Botswana","Gaborone","af",2],["mz","Mosambik","Maputo","af",2],["ao","Angola","Luanda","af",2],
+["cm","Kamerun","Yaoundé","af",2],["ci","Pobřeží slonoviny","Yamoussoukro","af",3],["ml","Mali","Bamako","af",2],
+["mg","Madagaskar","Antananarivo","af",2],["so","Somálsko","Mogadišo","af",2],["sd","Súdán","Chartúm","af",2],
+["cd","Kongo","Kinshasa","af",2],["rw","Rwanda","Kigali","af",3],["zm","Zambie","Lusaka","af",3],
+["sc","Seychely","Victoria","af",3],["mu","Mauricius","Port Louis","af",3],["cv","Kapverdy","Praia","af",3],
+["us","Spojené státy","Washington","am",1],["ca","Kanada","Ottawa","am",1],["mx","Mexiko","Ciudad de México","am",1],
+["br","Brazílie","Brasília","am",1],["ar","Argentina","Buenos Aires","am",1],["cl","Chile","Santiago","am",2],
+["pe","Peru","Lima","am",2],["co","Kolumbie","Bogotá","am",2],["ve","Venezuela","Caracas","am",2],
+["ec","Ekvádor","Quito","am",2],["bo","Bolívie","Sucre","am",2],["py","Paraguay","Asunción","am",2],
+["uy","Uruguay","Montevideo","am",2],["cu","Kuba","Havana","am",1],["jm","Jamajka","Kingston","am",2],
+["ht","Haiti","Port-au-Prince","am",2],["do","Dominikánská republika","Santo Domingo","am",2],
+["gt","Guatemala","Guatemala","am",2],["cr","Kostarika","San José","am",2],["pa","Panama","Panama","am",2],
+["bz","Belize","Belmopan","am",3],["sr","Surinam","Paramaribo","am",3],["gy","Guyana","Georgetown","am",3],
+["bb","Barbados","Bridgetown","am",3],["tt","Trinidad a Tobago","Port of Spain","am",3],["bs","Bahamy","Nassau","am",3],
+["lc","Svatá Lucie","Castries","am",3],["gd","Grenada","St. George's","am",3],["dm","Dominika","Roseau","am",3],
+["au","Austrálie","Canberra","oc",1],["nz","Nový Zéland","Wellington","oc",1],["fj","Fidži","Suva","oc",2],
+["pg","Papua-Nová Guinea","Port Moresby","oc",2],["ws","Samoa","Apia","oc",3],["to","Tonga","Nuku'alofa","oc",3],
+["vu","Vanuatu","Port Vila","oc",3],["sb","Šalomounovy ostrovy","Honiara","oc",3],["pw","Palau","Ngerulmud","oc",3],
+["mh","Marshallovy ostrovy","Majuro","oc",3],["ki","Kiribati","Tarawa","oc",3],["nr","Nauru","Yaren","oc",3],
+["tv","Tuvalu","Funafuti","oc",3],["fm","Mikronésie","Palikir","oc",3]
+].map(a=>({c:a[0],n:a[1],cap:a[2],k:a[3],f:a[4]}));
+
+const MODES=[
+  {id:"flag",ic:"🔊",t:"Najdi vlajku",s:"Uslyšíš stát, klikneš na jeho vlajku."},
+  {id:"name",ic:"🏳️",t:"Poznej stát",s:"Vidíš vlajku, vybereš správný název."},
+  {id:"cap", ic:"🏙️",t:"Hlavní města",s:"Vlajka a stát — které město je hlavní?"}
+];
+const CONTS=[{id:"all",t:"Celý svět 🌍"},{id:"eu",t:"Evropa"},{id:"as",t:"Asie"},{id:"af",t:"Afrika"},{id:"am",t:"Amerika"},{id:"oc",t:"Oceánie"}];
+const DIFFS=[{id:1,t:"Objevitel"},{id:2,t:"Cestovatel"},{id:3,t:"Kapitán 🧭"}];
+
+const QN=10, TIME=20000;
+let sel={mode:"flag",cont:"all",diff:1}, sound=true;
+let player="", playersList=[];
+let game=null, raf=null, ac=null;
+
+/* ============ POMOCNÉ ============ */
+const $=id=>document.getElementById(id);
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const emoji=c=>c.toUpperCase().replace(/./g,x=>String.fromCodePoint(127397+x.charCodeAt(0)));
+
+function flagEl(code){
+  const box=document.createElement('div');box.className='flag';
+  const img=new Image();img.alt="";img.src="https://flagcdn.com/w320/"+code+".png";
+  img.onerror=()=>{box.classList.add('emoji');box.textContent=emoji(code)};
+  box.appendChild(img);return box;
+}
+function beep(type){
+  if(!sound)return;
+  try{
+    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    const notes = type==="ok"?[660,880,1180]:type==="bad"?[200,150]:[520];
+    notes.forEach((f,i)=>{
+      const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+i*0.09;
+      o.type=type==="bad"?"square":"triangle";o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.25,t+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.22);
+      o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.25);
+    });
+  }catch(e){}
+}
+let voice=null;
+function pickVoice(){
+  try{const v=speechSynthesis.getVoices();voice=v.find(x=>/cs[-_]?CZ|Czech|čeština/i.test(x.lang+x.name))||null}catch(e){}
+}
+if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function say(text){
+  if(!sound||!window.speechSynthesis)return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="cs-CZ";u.rate=.92;u.pitch=1.05;if(voice)u.voice=voice;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function buzz(ms){try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}}
+const mem={};
+function ls(){try{const t="__t";localStorage.setItem(t,t);localStorage.removeItem(t);return localStorage}catch(e){return null}}
+async function loadK(k){
+  try{const r=await window.storage.get(k);if(r)return JSON.parse(r.value)}catch(e){}
+  const s=ls();
+  if(s){try{const v=s.getItem(k);if(v!=null)return JSON.parse(v)}catch(e){}}
+  return (k in mem)?mem[k]:null;
+}
+async function saveK(k,v){
+  mem[k]=v;
+  const s=ls();if(s){try{s.setItem(k,JSON.stringify(v))}catch(e){}}
+  try{await window.storage.set(k,JSON.stringify(v))}catch(e){}
+}
+
+/* --- 5. pád (oslovení) --- */
+const VOC={"petr":"Petře","pavel":"Pavle","karel":"Karle","havel":"Havle","jiří":"Jiří","ivan":"Ivane"};
+function vocative(nm){
+  if(!nm)return "cestovateli";
+  const low=nm.toLowerCase();
+  if(VOC[low])return VOC[low];
+  const last=low.slice(-1), last2=low.slice(-2);
+  if(last==="a")return nm.slice(0,-1)+"o";                 // Honza→Honzo, Eva→Evo
+  if("eiouyáéíóúůý".includes(last))return nm;               // Marie, Jiří, Nikol… beze změny
+  if("kghx".includes(last)||last2==="ch")return nm+"u";     // Marek→Marku, Vojtěch→Vojtěchu
+  if("jcčřšžďťňsz".includes(last))return nm+"i";            // Matěj→Matěji, Tomáš→Tomáši
+  if(last==="r")return nm+"e";                              // Otakar→Otakare
+  return nm+"e";                                            // Jan→Jane, Adam→Adame
+}
+
+/* --- znělka na konci kola --- */
+function melody(kind){
+  if(!sound)return 0;
+  const S={
+    gold:[[523,0,.16],[659,.16,.16],[784,.32,.16],[1047,.48,.34],[880,.86,.14],[1047,1.0,.5]],
+    good:[[523,0,.16],[659,.16,.16],[784,.32,.44]],
+    ok:  [[440,0,.18],[523,.18,.18],[659,.36,.36]],
+    meh: [[440,0,.2],[392,.2,.36]]
+  }[kind];
+  try{
+    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    S.forEach(([f,at,d])=>{
+      const t=ac.currentTime+at, o=ac.createOscillator(), g=ac.createGain();
+      o.type="triangle";o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.exponentialRampToValueAtTime(.22,t+.03);
+      g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.05);
+    });
+  }catch(e){return 0}
+  const last=S[S.length-1];return last[1]+last[2];
+}
+
+/* ============ HOME ============ */
+function buildHome(){
+  $("modes").innerHTML="";
+  MODES.forEach(m=>{
+    const b=document.createElement("button");b.className="mode";b.setAttribute("aria-pressed",sel.mode===m.id);
+    b.innerHTML=`<div class="ic">${m.ic}</div><div><b>${m.t}</b><span>${m.s}</span></div>`;
+    b.onclick=()=>{sel.mode=m.id;buildHome();beep("tick")};
+    $("modes").appendChild(b);
+  });
+  const chips=(host,list,key)=>{
+    host.innerHTML="";
+    list.forEach(o=>{
+      const b=document.createElement("button");b.className="chip";b.textContent=o.t;
+      b.setAttribute("aria-pressed",sel[key]===o.id);
+      b.onclick=()=>{sel[key]=o.id;buildHome();beep("tick")};
+      host.appendChild(b);
+    });
+  };
+  chips($("conts"),CONTS,"cont");
+  chips($("diffs"),DIFFS,"diff");
+
+  const ph=$("players");ph.innerHTML="";
+  $("whoLabel").textContent = player ? "Hraje "+player : "Kdo hraje?";
+  $("nameIn").placeholder = player ? "Hraje někdo jiný?" : "Napiš svoje jméno";
+  playersList.forEach(p=>{
+    const b=document.createElement("button");b.className="chip";b.textContent=p;
+    b.setAttribute("aria-pressed",player===p);
+    b.onclick=()=>{player=p;saveK("vlajkolet:last",p);$("nameIn").value="";buildHome();beep("tick");say("Ahoj, "+vocative(p)+"!")};
+    ph.appendChild(b);
+  });
+  showBest();
+}
+async function showBest(){
+  const board=await loadK(boardKey())||{};
+  const mine=board[player];
+  const top=Object.entries(board).sort((a,b)=>b[1]-a[1])[0];
+  $("best").textContent = mine ? `Tvůj rekord na tomhle letu: ${mine} bodů`
+    : top ? `Nejlepší na tomhle letu: ${top[0]} — ${top[1]} bodů`
+    : "Zatím žádný rekord. Tak do toho!";
+}
+const boardKey=()=>`vlajkolet:board:${sel.mode}:${sel.cont}:${sel.diff}`;
+
+function setPlayer(nm){
+  nm=(nm||"").trim().replace(/\s+/g," ");
+  if(!nm)return;
+  nm=nm.charAt(0).toUpperCase()+nm.slice(1);
+  playersList=[nm,...playersList.filter(p=>p!==nm)].slice(0,8);
+  player=nm;saveK("vlajkolet:players",playersList);saveK("vlajkolet:last",nm);
+  $("nameIn").value="";buildHome();beep("ok");say("Ahoj, "+vocative(nm)+"!");
+}
+async function boot(){
+  playersList=await loadK("vlajkolet:players")||[];
+  const last=await loadK("vlajkolet:last");
+  player=(last&&playersList.includes(last))?last:(playersList[0]||"");
+  buildHome();
+}
+
+/* ============ OTÁZKY ============ */
+function pool(){
+  let p=D.filter(x=>sel.cont==="all"||x.k===sel.cont);
+  let byDiff = sel.diff===1 ? p.filter(x=>x.f===1)
+             : sel.diff===2 ? p.filter(x=>x.f<=2)
+             : p;
+  if(byDiff.length<6) byDiff=p;           // malé kontinenty (Oceánie) – nesmí dojít státy
+  return {all:p,use:byDiff};
+}
+function makeQuestions(){
+  const {all,use}=pool();
+  let answers=shuffle(use.slice());
+  if(sel.diff===3){ // kapitán: přednost malým státům
+    answers.sort((a,b)=>(b.f-a.f)||(Math.random()-.5));
+    answers=shuffle(answers.slice(0,Math.max(QN,Math.ceil(answers.length*.6))));
+  }
+  answers=answers.slice(0,QN);
+  while(answers.length<QN) answers.push(rnd(all)); // pojistka u mini kontinentů
+  return answers.map(a=>{
+    let cands=(sel.diff===3?all.filter(x=>x.k===a.k):use).filter(x=>x.n!==a.n);
+    if(cands.length<3) cands=D.filter(x=>x.n!==a.n);
+    if(sel.mode==="cap") cands=cands.filter(x=>x.cap!==a.cap);
+    const opts=shuffle([a,...shuffle(cands).slice(0,3)]);
+    return {a,opts};
+  });
+}
+
+/* ============ HRA ============ */
+function start(){
+  beep("tick");
+  game={q:makeQuestions(),i:0,score:0,streak:0,best:0,ok:0,miss:[],t0:0,locked:false};
+  screen("s-game");
+  $("pips").innerHTML=Array.from({length:QN},()=>'<div class="pip"></div>').join("");
+  render();
+}
+function screen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id))}
+
+function render(){
+  const g=game,q=g.q[g.i];g.locked=false;
+  $("score").textContent=g.score;
+  [...$("pips").children].forEach((p,i)=>p.classList.toggle("now",i===g.i));
+
+  const ask=$("ask");ask.innerHTML="";
+  if(g.streak>=2){const s=document.createElement("div");s.className="streak";s.textContent="🔥 "+g.streak+"× v řadě";ask.appendChild(s)}
+
+  const opts=$("opts");opts.innerHTML="";opts.className="opts";
+
+  if(sel.mode==="flag"){
+    ask.insertAdjacentHTML("beforeend",`<div class="kicker">Najdi vlajku státu</div><p class="big">${q.a.n}</p>`);
+    const btn=document.createElement("button");btn.className="say";btn.textContent="🔊 Řekni to znovu";
+    btn.onclick=()=>say(q.a.n);ask.appendChild(btn);
+    say(q.a.n);
+    opts.classList.add("grid2");
+    q.opts.forEach(o=>{
+      const b=document.createElement("button");b.className="opt";b.appendChild(flagEl(o.c));
+      b.onclick=()=>answer(b,o.n===q.a.n,q);opts.appendChild(b);
+    });
+  }
+  if(sel.mode==="name"){
+    ask.insertAdjacentHTML("beforeend",`<div class="kicker">Které je to státu vlajka?</div>`);
+    const box=document.createElement("div");box.className="flagbox";box.appendChild(flagEl(q.a.c));ask.appendChild(box);
+    say("Které zemi patří tato vlajka?");
+    q.opts.forEach(o=>{
+      const b=document.createElement("button");b.className="opt";b.textContent=o.n;
+      b.onclick=()=>answer(b,o.n===q.a.n,q);opts.appendChild(b);
+    });
+  }
+  if(sel.mode==="cap"){
+    ask.insertAdjacentHTML("beforeend",`<div class="kicker">Hlavní město státu</div>`);
+    const box=document.createElement("div");box.className="flagbox";box.appendChild(flagEl(q.a.c));ask.appendChild(box);
+    ask.insertAdjacentHTML("beforeend",`<p class="big">${q.a.n}</p>`);
+    const btn=document.createElement("button");btn.className="say";btn.textContent="🔊 Řekni to znovu";
+    btn.onclick=()=>say("Hlavní město státu "+q.a.n);ask.appendChild(btn);
+    say("Hlavní město státu "+q.a.n);
+    q.opts.forEach(o=>{
+      const b=document.createElement("button");b.className="opt";b.textContent=o.cap;
+      b.onclick=()=>answer(b,o.cap===q.a.cap,q);opts.appendChild(b);
+    });
+  }
+  g.t0=performance.now();
+  tick();
+}
+function tick(){
+  cancelAnimationFrame(raf);
+  const step=()=>{
+    const left=Math.max(0,1-(performance.now()-game.t0)/TIME);
+    $("fuel").style.transform="scaleX("+left+")";
+    $("plane").style.left=(left*100)+"%";
+    if(left<=0){timeout();return}
+    raf=requestAnimationFrame(step);
+  };
+  raf=requestAnimationFrame(step);
+}
+function left(){return Math.max(0,1-(performance.now()-game.t0)/TIME)}
+
+function answer(btn,correct,q){
+  if(game.locked)return;game.locked=true;cancelAnimationFrame(raf);
+  const g=game;
+  if(correct){
+    const speed=Math.round(100*left());
+    const bonus=Math.min(g.streak,5)*10;
+    const pts=100+speed+bonus;
+    g.score+=pts;g.ok++;g.streak++;g.best=Math.max(g.best,g.streak);
+    btn.classList.add("right");gain("+"+pts);beep("ok");buzz(30);
+    $("pips").children[g.i].className="pip ok";
+    setTimeout(next,750);
+  }else{
+    g.streak=0;g.miss.push(q.a);
+    btn.classList.add("wrong");beep("bad");buzz([40,60,40]);
+    markCorrect(q);
+    $("pips").children[g.i].className="pip bad";
+    setTimeout(next,1500);
+  }
+}
+function timeout(){
+  if(game.locked)return;game.locked=true;
+  const q=game.q[game.i];game.streak=0;game.miss.push(q.a);
+  beep("bad");markCorrect(q);
+  $("pips").children[game.i].className="pip bad";
+  setTimeout(next,1500);
+}
+function markCorrect(q){
+  [...$("opts").children].forEach((b,i)=>{
+    const o=q.opts[i];
+    const isRight = sel.mode==="cap" ? o.cap===q.a.cap : o.n===q.a.n;
+    if(isRight)b.classList.add("right");else if(!b.classList.contains("wrong"))b.classList.add("dim");
+  });
+}
+function gain(t){const d=document.createElement("div");d.className="gain";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1000)}
+function next(){
+  game.i++;
+  if(game.i>=QN)finish();else render();
+}
+
+/* ============ KONEC ============ */
+async function finish(){
+  cancelAnimationFrame(raf);
+  const g=game;screen("s-end");
+  const stars=g.ok>=9?3:g.ok>=7?2:g.ok>=5?1:0;
+  $("stars").textContent="★★★".slice(0,stars)+"☆☆☆".slice(0,3-stars);
+  $("stamp").textContent = stars===3?"Kapitán světa":stars===2?"Dobrý let":stars===1?"Přistáno":"Ještě jednou";
+  $("total").textContent=g.score;
+  $("rows").innerHTML=`
+    <div><span>Správně</span><b>${g.ok} z ${QN}</b></div>
+    <div><span>Nejdelší série</span><b>${g.best}×</b></div>
+    <div><span>Rychlostní bonus</span><b>${Math.max(0,g.score-g.ok*100)} bodů</b></div>`;
+  $("missed").innerHTML = g.miss.length
+    ? "Tyhle si ještě projdi: "+g.miss.map(m=>`<b>${m.n}</b>${sel.mode==="cap"?" ("+m.cap+")":""}`).join(", ")
+    : "Ani jedna chyba. Celý svět v malíku!";
+  $("who").textContent = player ? "Letěl "+player : "";
+
+  // znělka podle výsledku + oslovení jménem
+  const voc=vocative(player);
+  const kind=stars===3?"gold":stars===2?"good":stars===1?"ok":"meh";
+  const praise={
+    gold:`Bravo, ${voc}! Perfektní let.`,
+    good:`Výborně, ${voc}! To bylo pěkné.`,
+    ok:  `Dobrá práce, ${voc}.`,
+    meh: `Nevadí, ${voc}. Zkus to ještě jednou.`
+  }[kind];
+  if(stars>=2)confetti();
+  const dur=melody(kind);
+  setTimeout(()=>say(praise),dur*1000+250);
+
+  // rekordy hráčů
+  const bk=boardKey(),board=await loadK(bk)||{};
+  const prev=board[player||"Cestovatel"]||0, key=player||"Cestovatel";
+  const isRecord=g.score>prev;
+  if(isRecord){board[key]=g.score;await saveK(bk,board)}
+  const top=Object.entries(board).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  $("board").innerHTML=`<h3>Rekordy tohoto letu${isRecord?" — nový rekord! 🏅":""}</h3>`+
+    top.map(([n,s],i)=>`<div class="${n===key?"me":""}"><span>${["🥇","🥈","🥉","4."][i]} ${n}</span><b>${s}</b></div>`).join("");
+}
+
+/* ============ KONFETY ============ */
+function confetti(){
+  const cv=$("confetti"),ctx=cv.getContext("2d");
+  cv.width=innerWidth;cv.height=innerHeight;
+  const cols=["#FFC93C","#FF5E5B","#2ED3A0","#4E8BF5","#FFF8EC"];
+  const P=Array.from({length:110},()=>({x:Math.random()*cv.width,y:-40-Math.random()*300,
+    w:6+Math.random()*8,h:8+Math.random()*10,vy:2+Math.random()*3.5,vx:-1.5+Math.random()*3,
+    r:Math.random()*6,vr:-.2+Math.random()*.4,c:rnd(cols)}));
+  let n=0;
+  (function loop(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore()});
+    if(n++<260)requestAnimationFrame(loop);else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
+}
+
+/* ============ OVLÁDÁNÍ ============ */
+$("addP").onclick=()=>setPlayer($("nameIn").value);
+$("nameIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();setPlayer($("nameIn").value);$("nameIn").blur()}});
+$("playBtn").onclick=()=>{const typed=$("nameIn").value.trim();if(typed)setPlayer(typed);start()};
+$("againBtn").onclick=start;
+$("homeBtn").onclick=()=>{screen("s-home");showBest()};
+$("quitBtn").onclick=()=>{cancelAnimationFrame(raf);try{speechSynthesis.cancel()}catch(e){};screen("s-home");showBest()};
+$("sndBtn").onclick=()=>{sound=!sound;$("sndBtn").textContent=sound?"🔊":"🔇";if(!sound)try{speechSynthesis.cancel()}catch(e){}};
+document.addEventListener("visibilitychange",()=>{if(document.hidden)try{speechSynthesis.cancel()}catch(e){}});
+boot();
+</script>
