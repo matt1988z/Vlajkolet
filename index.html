@@ -88,6 +88,11 @@ h1{
 .board h3{margin:0 0 6px;font-size:14px;font-weight:700;color:#5B6885}
 .board div{display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:#33405E;padding:2px 0}
 .board div.me{color:var(--sky)}
+.board i{font-style:normal;font-size:12px;color:#8C99B5;font-weight:600}
+.fuel.low{background:linear-gradient(90deg,#FF2E2A,var(--coral));animation:blink .6s steps(2,end) infinite}
+@keyframes blink{50%{opacity:.35}}
+.plane.fall{animation:fall .9s ease-in forwards}
+@keyframes fall{to{transform:translate(-50%,120px) rotate(70deg);opacity:0}}
 .who{font-size:17px;font-weight:700;color:#5B6885}
 
 /* ---------- game ---------- */
@@ -176,11 +181,23 @@ h1{
   <div class="label">Kam poletíš?</div>
   <div class="chips" id="conts"></div>
 
-  <div class="label">Jak těžké to bude?</div>
+  <div class="label" id="diffLabel">Jak těžké to bude?</div>
   <div class="chips" id="diffs"></div>
 
   <button class="play" id="playBtn">Start ✈️</button>
+  <button class="play" id="hofBtn" style="background:var(--sky);margin-top:10px;font-size:20px">🏆 Síň slávy</button>
   <div class="best" id="best"></div>
+</section>
+
+<!-- SÍŇ SLÁVY -->
+<section class="screen" id="s-hof">
+  <div class="brand"><h1 style="font-size:38px">Síň slávy</h1></div>
+  <div class="chips" id="hofTabs"></div>
+  <div class="result" style="margin-top:14px">
+    <div class="board" id="hofList" style="border:none;margin:0;padding:0"></div>
+  </div>
+  <button class="play" id="hofBack" style="margin-top:14px">Zpět</button>
+  <button class="play" id="hofClear" style="background:transparent;border:2px solid rgba(255,255,255,.3);color:#9FBAF0;font-size:15px;box-shadow:none;margin-top:10px;padding:10px">Vymazat tabulku</button>
 </section>
 
 <!-- GAME -->
@@ -236,9 +253,9 @@ const D=[
 ["in","Indie","Nové Dillí","as",1],["th","Thajsko","Bangkok","as",1],["vn","Vietnam","Hanoj","as",2],
 ["id","Indonésie","Jakarta","as",2],["ph","Filipíny","Manila","as",2],["my","Malajsie","Kuala Lumpur","as",2],
 ["sg","Singapur","Singapur","as",2],["pk","Pákistán","Islámábád","as",2],["bd","Bangladéš","Dháka","as",2],
-["np","Nepál","Káthmándú","as",2],["lk","Srí Lanka","Kolombo","as",2],["kh","Kambodža","Phnompenh","as",2],
+["np","Nepál","Káthmándú","as",2],["lk","Srí Lanka","Srí Džajavardanapura Kotte","as",2],["kh","Kambodža","Phnompenh","as",2],
 ["la","Laos","Vientiane","as",3],["mm","Myanmar","Neipyijto","as",3],["mn","Mongolsko","Ulánbátar","as",2],
-["kz","Kazachstán","Astana","as",2],["uz","Uzbekistán","Taškent","as",2],["af","Afghánistán","Kábul","as",2],
+["kz","Kazachstán","Astana","as",2],["uz","Uzbekistán","Taškent","as",2],
 ["ir","Írán","Teherán","as",2],["iq","Irák","Bagdád","as",2],["sa","Saúdská Arábie","Rijád","as",2],
 ["ae","Spojené arabské emiráty","Abú Zabí","as",2],["il","Izrael","Jeruzalém","as",2],["jo","Jordánsko","Ammán","as",2],
 ["lb","Libanon","Bejrút","as",2],["sy","Sýrie","Damašek","as",2],["qa","Katar","Dauhá","as",2],
@@ -275,10 +292,14 @@ const D=[
 const MODES=[
   {id:"flag",ic:"🔊",t:"Najdi vlajku",s:"Uslyšíš stát, klikneš na jeho vlajku."},
   {id:"name",ic:"🏳️",t:"Poznej stát",s:"Vidíš vlajku, vybereš správný název."},
-  {id:"cap", ic:"🏙️",t:"Hlavní města",s:"Vlajka a stát — které město je hlavní?"}
+  {id:"cap", ic:"🏙️",t:"Hlavní města",s:"Vlajka a stát — které město je hlavní?"},
+  {id:"crazy",ic:"🔥",t:"Bláznivý let",s:"Dochází palivo! Každá správná odpověď přidá 2 vteřiny. Kdo doletí dál?"}
 ];
 const CONTS=[{id:"all",t:"Celý svět 🌍"},{id:"eu",t:"Evropa"},{id:"as",t:"Asie"},{id:"af",t:"Afrika"},{id:"am",t:"Amerika"},{id:"oc",t:"Oceánie"}];
-const DIFFS=[{id:1,t:"Objevitel"},{id:2,t:"Cestovatel"},{id:3,t:"Kapitán 🧭"}];
+const DIFFS=[{id:1,t:"Objevitel ×1"},{id:2,t:"Cestovatel ×2"},{id:3,t:"Kapitán ×3,5 🧭"}];
+const DNAME={1:"Objevitel",2:"Cestovatel",3:"Kapitán"};
+const MULT={1:1,2:2,3:3.5};
+const FUEL_MAX=15000, FUEL_BONUS=2000;
 
 const QN=10, TIME=20000;
 let sel={mode:"flag",cont:"all",diff:1}, sound=true;
@@ -398,6 +419,9 @@ function buildHome(){
   };
   chips($("conts"),CONTS,"cont");
   chips($("diffs"),DIFFS,"diff");
+  const crazy=sel.mode==="crazy";
+  $("diffLabel").textContent=crazy?"Obtížnost: v bláznivém letu se míchá všechno 🔀":"Jak těžké to bude?";
+  $("diffs").style.display=crazy?"none":"flex";
 
   const ph=$("players");ph.innerHTML="";
   $("whoLabel").textContent = player ? "Hraje "+player : "Kdo hraje?";
@@ -411,14 +435,13 @@ function buildHome(){
   showBest();
 }
 async function showBest(){
-  const board=await loadK(boardKey())||{};
-  const mine=board[player];
-  const top=Object.entries(board).sort((a,b)=>b[1]-a[1])[0];
-  $("best").textContent = mine ? `Tvůj rekord na tomhle letu: ${mine} bodů`
-    : top ? `Nejlepší na tomhle letu: ${top[0]} — ${top[1]} bodů`
+  const top=await loadK(hofKey())||[];
+  const mine=top.filter(e=>e.n===player).sort((a,b)=>b.s-a.s)[0];
+  const unit=sel.mode==="crazy"?" států":" bodů";
+  $("best").textContent = top.length
+    ? `🏆 Vede ${top[0].n} — ${top[0].s}${unit}` + (mine?`   ·   ty ${mine.s}${unit}`:"")
     : "Zatím žádný rekord. Tak do toho!";
 }
-const boardKey=()=>`vlajkolet:board:${sel.mode}:${sel.cont}:${sel.diff}`;
 
 function setPlayer(nm){
   nm=(nm||"").trim().replace(/\s+/g," ");
@@ -437,52 +460,65 @@ async function boot(){
 
 /* ============ OTÁZKY ============ */
 function pool(){
-  let p=D.filter(x=>sel.cont==="all"||x.k===sel.cont);
+  const p=D.filter(x=>sel.cont==="all"||x.k===sel.cont);
+  if(sel.mode==="crazy")return {all:p,use:p};    // bláznivý let = všechny obtížnosti dohromady
   let byDiff = sel.diff===1 ? p.filter(x=>x.f===1)
              : sel.diff===2 ? p.filter(x=>x.f<=2)
              : p;
   if(byDiff.length<6) byDiff=p;           // malé kontinenty (Oceánie) – nesmí dojít státy
   return {all:p,use:byDiff};
 }
-function makeQuestions(){
-  const {all,use}=pool();
-  let answers=shuffle(use.slice());
-  if(sel.diff===3){ // kapitán: přednost malým státům
-    answers.sort((a,b)=>(b.f-a.f)||(Math.random()-.5));
-    answers=shuffle(answers.slice(0,Math.max(QN,Math.ceil(answers.length*.6))));
-  }
-  answers=answers.slice(0,QN);
-  while(answers.length<QN) answers.push(rnd(all)); // pojistka u mini kontinentů
-  return answers.map(a=>{
-    let cands=(sel.diff===3?all.filter(x=>x.k===a.k):use).filter(x=>x.n!==a.n);
-    if(cands.length<3) cands=D.filter(x=>x.n!==a.n);
-    if(sel.mode==="cap") cands=cands.filter(x=>x.cap!==a.cap);
-    const opts=shuffle([a,...shuffle(cands).slice(0,3)]);
-    return {a,opts};
-  });
+let usedPool=[];
+function pickAnswer(use){
+  let cand=use.filter(x=>!usedPool.includes(x.n));
+  if(!cand.length){usedPool=[];cand=use}
+  let a;
+  if(sel.diff===3&&sel.mode!=="crazy"){const hard=cand.filter(x=>x.f===3);a=(hard.length&&Math.random()<.7)?rnd(hard):rnd(cand)}
+  else a=rnd(cand);
+  usedPool.push(a.n);if(usedPool.length>40)usedPool.shift();
+  return a;
 }
+function makeOne(type){
+  const {all,use}=pool();
+  const a=pickAnswer(use);
+  let cands=(sel.diff===3&&sel.mode!=="crazy"?all.filter(x=>x.k===a.k):use).filter(x=>x.n!==a.n);
+  if(cands.length<3)cands=D.filter(x=>x.n!==a.n);
+  if(type==="cap")cands=cands.filter(x=>x.cap!==a.cap);
+  let opts=[a,...shuffle(cands.slice()).slice(0,3)];
+  // odpovědi se čtou → řadíme podle abecedy; vlajky se nečtou → náhodně
+  if(type==="name")      opts.sort((x,y)=>x.n.localeCompare(y.n,"cs"));
+  else if(type==="cap")  opts.sort((x,y)=>x.cap.localeCompare(y.cap,"cs"));
+  else                   opts=shuffle(opts);
+  return {a,opts,type};
+}
+function qType(){return sel.mode==="crazy"?rnd(["flag","name","cap"]):sel.mode}
+function makeQuestions(){usedPool=[];return Array.from({length:QN},()=>makeOne(sel.mode))}
+function qAt(i){while(game.q.length<=i)game.q.push(makeOne(qType()));return game.q[i]}
 
 /* ============ HRA ============ */
 function start(){
-  beep("tick");
-  game={q:makeQuestions(),i:0,score:0,streak:0,best:0,ok:0,miss:[],t0:0,locked:false};
+  beep("tick");usedPool=[];
+  const crazy=sel.mode==="crazy";
+  game={q:crazy?[]:makeQuestions(),i:0,score:0,streak:0,best:0,ok:0,miss:[],t0:0,locked:false,crazy,fuel:FUEL_MAX,warned:99};
   screen("s-game");
-  $("pips").innerHTML=Array.from({length:QN},()=>'<div class="pip"></div>').join("");
+  $("plane").textContent="✈️";$("plane").classList.remove("fall");
+  $("pips").style.display=crazy?"none":"flex";
+  $("pips").innerHTML=crazy?"":Array.from({length:QN},()=>'<div class="pip"></div>').join("");
   render();
 }
 function screen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id))}
 
 function render(){
-  const g=game,q=g.q[g.i];g.locked=false;
-  $("score").textContent=g.score;
-  [...$("pips").children].forEach((p,i)=>p.classList.toggle("now",i===g.i));
+  const g=game,q=g.crazy?qAt(g.i):g.q[g.i];g.locked=false;
+  $("score").textContent=g.crazy?("✈️ "+g.ok):g.score;
+  if(!g.crazy)[...$("pips").children].forEach((p,i)=>p.classList.toggle("now",i===g.i));
 
   const ask=$("ask");ask.innerHTML="";
   if(g.streak>=2){const s=document.createElement("div");s.className="streak";s.textContent="🔥 "+g.streak+"× v řadě";ask.appendChild(s)}
 
   const opts=$("opts");opts.innerHTML="";opts.className="opts";
 
-  if(sel.mode==="flag"){
+  if(q.type==="flag"){
     ask.insertAdjacentHTML("beforeend",`<div class="kicker">Najdi vlajku státu</div><p class="big">${q.a.n}</p>`);
     const btn=document.createElement("button");btn.className="say";btn.textContent="🔊 Řekni to znovu";
     btn.onclick=()=>say(q.a.n);ask.appendChild(btn);
@@ -493,8 +529,8 @@ function render(){
       b.onclick=()=>answer(b,o.n===q.a.n,q);opts.appendChild(b);
     });
   }
-  if(sel.mode==="name"){
-    ask.insertAdjacentHTML("beforeend",`<div class="kicker">Které je to státu vlajka?</div>`);
+  if(q.type==="name"){
+    ask.insertAdjacentHTML("beforeend",`<div class="kicker">Které zemi patří tahle vlajka?</div>`);
     const box=document.createElement("div");box.className="flagbox";box.appendChild(flagEl(q.a.c));ask.appendChild(box);
     say("Které zemi patří tato vlajka?");
     q.opts.forEach(o=>{
@@ -502,7 +538,7 @@ function render(){
       b.onclick=()=>answer(b,o.n===q.a.n,q);opts.appendChild(b);
     });
   }
-  if(sel.mode==="cap"){
+  if(q.type==="cap"){
     ask.insertAdjacentHTML("beforeend",`<div class="kicker">Hlavní město státu</div>`);
     const box=document.createElement("div");box.className="flagbox";box.appendChild(flagEl(q.a.c));ask.appendChild(box);
     ask.insertAdjacentHTML("beforeend",`<p class="big">${q.a.n}</p>`);
@@ -517,13 +553,28 @@ function render(){
   g.t0=performance.now();
   tick();
 }
+function paint(r){
+  $("fuel").style.transform="scaleX("+r+")";
+  $("plane").style.left=(r*100)+"%";
+  $("fuel").classList.toggle("low",game.crazy&&r<.34);
+}
 function tick(){
   cancelAnimationFrame(raf);
-  const step=()=>{
-    const left=Math.max(0,1-(performance.now()-game.t0)/TIME);
-    $("fuel").style.transform="scaleX("+left+")";
-    $("plane").style.left=(left*100)+"%";
-    if(left<=0){timeout();return}
+  let prev=performance.now();
+  const step=now=>{
+    const dt=now-prev;prev=now;
+    let r;
+    if(game.crazy){
+      if(!game.locked)game.fuel-=dt;
+      if(game.fuel<=0){paint(0);crash();return}
+      const secs=Math.ceil(game.fuel/1000);
+      if(secs<=5&&secs<game.warned){game.warned=secs;beep("tick")}
+      r=game.fuel/FUEL_MAX;
+    }else{
+      r=Math.max(0,1-(now-game.t0)/TIME);
+      if(r<=0){timeout();return}
+    }
+    paint(r);
     raf=requestAnimationFrame(step);
   };
   raf=requestAnimationFrame(step);
@@ -531,22 +582,27 @@ function tick(){
 function left(){return Math.max(0,1-(performance.now()-game.t0)/TIME)}
 
 function answer(btn,correct,q){
-  if(game.locked)return;game.locked=true;cancelAnimationFrame(raf);
+  if(game.locked)return;game.locked=true;
   const g=game;
+  if(!g.crazy)cancelAnimationFrame(raf);
   if(correct){
-    const speed=Math.round(100*left());
-    const bonus=Math.min(g.streak,5)*10;
-    const pts=100+speed+bonus;
-    g.score+=pts;g.ok++;g.streak++;g.best=Math.max(g.best,g.streak);
-    btn.classList.add("right");gain("+"+pts);beep("ok");buzz(30);
-    $("pips").children[g.i].className="pip ok";
-    setTimeout(next,750);
+    g.ok++;g.streak++;g.best=Math.max(g.best,g.streak);
+    if(g.crazy){
+      g.fuel=Math.min(FUEL_MAX,g.fuel+FUEL_BONUS);g.warned=99;g.score=g.ok;
+      gain("+2 s ⛽");
+    }else{
+      const pts=Math.round((100+Math.round(100*left())+Math.min(g.streak,5)*10)*MULT[sel.diff]);
+      g.score+=pts;gain("+"+pts);
+      $("pips").children[g.i].className="pip ok";
+    }
+    btn.classList.add("right");beep("ok");buzz(30);
+    setTimeout(next,g.crazy?600:750);
   }else{
     g.streak=0;g.miss.push(q.a);
     btn.classList.add("wrong");beep("bad");buzz([40,60,40]);
     markCorrect(q);
-    $("pips").children[g.i].className="pip bad";
-    setTimeout(next,1500);
+    if(!g.crazy)$("pips").children[g.i].className="pip bad";
+    setTimeout(next,g.crazy?1100:1500);
   }
 }
 function timeout(){
@@ -556,33 +612,65 @@ function timeout(){
   $("pips").children[game.i].className="pip bad";
   setTimeout(next,1500);
 }
+function crash(){
+  cancelAnimationFrame(raf);
+  if(game.over)return;game.over=true;game.locked=true;
+  $("plane").textContent="💥";$("plane").classList.add("fall");
+  [...$("opts").children].forEach(b=>b.classList.add("dim"));
+  beep("bad");buzz([80,60,120]);
+  setTimeout(finish,900);
+}
 function markCorrect(q){
   [...$("opts").children].forEach((b,i)=>{
     const o=q.opts[i];
-    const isRight = sel.mode==="cap" ? o.cap===q.a.cap : o.n===q.a.n;
+    const isRight = q.type==="cap" ? o.cap===q.a.cap : o.n===q.a.n;
     if(isRight)b.classList.add("right");else if(!b.classList.contains("wrong"))b.classList.add("dim");
   });
 }
 function gain(t){const d=document.createElement("div");d.className="gain";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1000)}
 function next(){
+  if(game.over)return;
   game.i++;
-  if(game.i>=QN)finish();else render();
+  if(!game.crazy&&game.i>=QN)finish();else render();
 }
 
 /* ============ KONEC ============ */
+const hofKey=()=>sel.mode==="crazy"?"vlajkolet:hof:crazy":"vlajkolet:hof:"+sel.mode;
+async function pushHof(score){
+  const k=hofKey(),list=await loadK(k)||[];
+  const e={n:player||"Cestovatel",s:score,d:sel.diff,c:sel.cont,t:Date.now()};
+  list.push(e);list.sort((a,b)=>b.s-a.s);
+  const top=list.slice(0,12);
+  await saveK(k,top);
+  return {top,rank:top.indexOf(e)+1};
+}
+function hofRow(e,i,me){
+  const medal=["🥇","🥈","🥉"][i]||(i+1+".");
+  const tag=sel.mode==="crazy"?CONTS.find(c=>c.id===e.c).t.replace(" 🌍",""):DNAME[e.d];
+  return `<div class="${me?"me":""}"><span>${medal} ${e.n} <i>${tag}</i></span><b>${e.s}</b></div>`;
+}
 async function finish(){
   cancelAnimationFrame(raf);
   const g=game;screen("s-end");
-  const stars=g.ok>=9?3:g.ok>=7?2:g.ok>=5?1:0;
+  const crazy=g.crazy;
+  const stars = crazy ? (g.ok>=18?3:g.ok>=12?2:g.ok>=6?1:0)
+                      : (g.ok>=9?3:g.ok>=7?2:g.ok>=5?1:0);
   $("stars").textContent="★★★".slice(0,stars)+"☆☆☆".slice(0,3-stars);
-  $("stamp").textContent = stars===3?"Kapitán světa":stars===2?"Dobrý let":stars===1?"Přistáno":"Ještě jednou";
-  $("total").textContent=g.score;
-  $("rows").innerHTML=`
+  $("stamp").textContent = crazy
+    ? (stars===3?"Bláznivý as":stars===2?"Dolétnuto":stars===1?"Nouzové přistání":"Spadl hned")
+    : (stars===3?"Kapitán světa":stars===2?"Dobrý let":stars===1?"Přistáno":"Ještě jednou");
+  $("total").textContent=crazy?g.ok:g.score;
+  $("totlab").textContent=crazy?"států doletěl, než došlo palivo":"bodů";
+  $("rows").innerHTML = crazy ? `
+    <div><span>Nejdelší série</span><b>${g.best}×</b></div>
+    <div><span>Natankováno</span><b>${g.ok*2} vteřin</b></div>
+    <div><span>Chyb</span><b>${g.miss.length}</b></div>`
+  : `
     <div><span>Správně</span><b>${g.ok} z ${QN}</b></div>
     <div><span>Nejdelší série</span><b>${g.best}×</b></div>
-    <div><span>Rychlostní bonus</span><b>${Math.max(0,g.score-g.ok*100)} bodů</b></div>`;
+    <div><span>Obtížnost</span><b>${DNAME[sel.diff]} — body ×${String(MULT[sel.diff]).replace(".",",")}</b></div>`;
   $("missed").innerHTML = g.miss.length
-    ? "Tyhle si ještě projdi: "+g.miss.map(m=>`<b>${m.n}</b>${sel.mode==="cap"?" ("+m.cap+")":""}`).join(", ")
+    ? "Tyhle si ještě projdi: "+g.miss.map(m=>`<b>${m.n}</b>`).join(", ")
     : "Ani jedna chyba. Celý svět v malíku!";
   $("who").textContent = player ? "Letěl "+player : "";
 
@@ -599,14 +687,11 @@ async function finish(){
   const dur=melody(kind);
   setTimeout(()=>say(praise),dur*1000+250);
 
-  // rekordy hráčů
-  const bk=boardKey(),board=await loadK(bk)||{};
-  const prev=board[player||"Cestovatel"]||0, key=player||"Cestovatel";
-  const isRecord=g.score>prev;
-  if(isRecord){board[key]=g.score;await saveK(bk,board)}
-  const top=Object.entries(board).sort((a,b)=>b[1]-a[1]).slice(0,4);
-  $("board").innerHTML=`<h3>Rekordy tohoto letu${isRecord?" — nový rekord! 🏅":""}</h3>`+
-    top.map(([n,s],i)=>`<div class="${n===key?"me":""}"><span>${["🥇","🥈","🥉","4."][i]} ${n}</span><b>${s}</b></div>`).join("");
+  // síň slávy
+  const {top,rank}=await pushHof(crazy?g.ok:g.score);
+  const me=top.find(e=>e.n===(player||"Cestovatel")&&e.s===(crazy?g.ok:g.score));
+  $("board").innerHTML=`<h3>${MODES.find(m=>m.id===sel.mode).t} — nejlepší ze všech${rank&&rank<=3?" · jsi "+rank+".! 🏅":""}</h3>`+
+    top.slice(0,6).map((e,i)=>hofRow(e,i,e===me)).join("");
 }
 
 /* ============ KONFETY ============ */
@@ -626,6 +711,35 @@ function confetti(){
     if(n++<260)requestAnimationFrame(loop);else ctx.clearRect(0,0,cv.width,cv.height);
   })();
 }
+
+/* ============ SÍŇ SLÁVY ============ */
+let hofTab="flag";
+async function showHof(){
+  screen("s-hof");
+  const tabs=$("hofTabs");tabs.innerHTML="";
+  MODES.forEach(m=>{
+    const b=document.createElement("button");b.className="chip";b.textContent=m.ic+" "+m.t;
+    b.setAttribute("aria-pressed",hofTab===m.id);
+    b.onclick=()=>{hofTab=m.id;beep("tick");showHof()};
+    tabs.appendChild(b);
+  });
+  const list=await loadK("vlajkolet:hof:"+hofTab)||[];
+  const unit=hofTab==="crazy"?" států":"";
+  $("hofList").innerHTML = list.length
+    ? `<h3>${hofTab==="crazy"?"Kdo doletěl nejdál":"Nejvyšší skóre"}</h3>`+
+      list.map((e,i)=>{
+        const medal=["🥇","🥈","🥉"][i]||(i+1+".");
+        const tag=hofTab==="crazy"?CONTS.find(c=>c.id===e.c).t.replace(" 🌍",""):DNAME[e.d];
+        return `<div class="${e.n===player?"me":""}"><span>${medal} ${e.n} <i>${tag}</i></span><b>${e.s}${unit}</b></div>`;
+      }).join("")
+    : "<h3>Tady zatím nikdo nelétal.</h3>";
+}
+$("hofBtn").onclick=()=>{hofTab=sel.mode;beep("tick");showHof()};
+$("hofBack").onclick=()=>{screen("s-home");showBest()};
+$("hofClear").onclick=async()=>{
+  if(!confirm("Opravdu vymazat tabulku „"+MODES.find(m=>m.id===hofTab).t+"“?"))return;
+  await saveK("vlajkolet:hof:"+hofTab,[]);showHof();
+};
 
 /* ============ OVLÁDÁNÍ ============ */
 $("addP").onclick=()=>setPlayer($("nameIn").value);
